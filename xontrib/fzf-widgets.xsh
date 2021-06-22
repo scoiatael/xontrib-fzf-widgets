@@ -127,7 +127,12 @@ def custom_keybindings(bindings, **kw):
 
 
         if choice:
-            event.current_buffer.insert_text('ssh ' + choice)
+            cmd = 'ssh ' + choice
+            should_eval = event.current_buffer.document.cursor_position == 0
+            event.current_buffer.insert_text(cmd)
+            if should_eval:
+                event.current_buffer.validate_and_handle()
+                event.cli.renderer.erase()
 
     def _hosts_from_config():
         return '\n'.join(

@@ -120,18 +120,24 @@ def custom_keybindings(bindings, **kw):
 
     @handler('fzf_ssh_binding')
     def fzf_ssh(event):
-        items = '\n'.join(
-             re.findall(r'Host\s(.*)\n?',
-                        $(cat ~/.ssh/config /etc/ssh/ssh_config),
-                        re.IGNORECASE)
-        )
-        choice = fzf_prompt_from_string(items)
+        choice = fzf_prompt_from_string(_hosts_from_config() + _hosts_from_known_hosts())
 
         # Redraw the shell because fzf used alternate mode
         event.cli.renderer.erase()
 
+
         if choice:
             event.current_buffer.insert_text('ssh ' + choice)
+
+    def _hosts_from_config():
+        return '\n'.join(
+            re.findall(r'Host\s(.*)\n?',
+                       $(cat ~/.ssh/config /etc/ssh/ssh_config),
+                       re.IGNORECASE)
+        )
+
+    def _hosts_from_known_hosts():
+        return $(cat ~/.ssh/known_hosts | awk '{ split($1, A, ","); print(A[1]) }')
 
     @handler('fzf_file_binding')
     def fzf_file(event):
